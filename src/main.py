@@ -6,7 +6,7 @@ import jwt
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
-from .routes import user_router
+from .routes import user_router, posts_router, comments_router
 from .schemas import TokenResponse, User
 from .exceptions import NoSuchUser, bad_credentials, internal_error
 from .repositories import auth as auth_repo
@@ -17,6 +17,8 @@ app = FastAPI(
 )
 
 app.include_router(user_router)
+app.include_router(posts_router)
+app.include_router(comments_router)
 
 
 @app.post("/login")

@@ -43,7 +43,7 @@ class UserCredentials(BaseModel):
 class User(BaseModel):
     user_id: int
     email: EmailStr
-    autoreply_timeout: int | None = Field(default=None, ge=-1, le=24 * 60 * 60)
+    autoreply_timeout: int | None = Field(default=None, ge=0, le=24 * 60 * 60)
 
 
 class TokenResponse(BaseModel):
@@ -84,7 +84,7 @@ class Comment(BaseModel):
     # post: Post | None = None
     post_id: int
     body: str
-    status: CommentStatus = CommentStatus.NOT_REVIEWED
+    status: CommentStatus = CommentStatus.NOT_REVIEWED  # TODO: something unclear with type here
     created_at: datetime | None = None
     updated_at: datetime | None = None
     autoreply_at: int | None = None

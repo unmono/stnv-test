@@ -27,7 +27,7 @@ def create_user(credentials: UserCredentials) -> User:
             result = db.execute(
                 "INSERT INTO users(email, hash) "
                 "VALUES (?, ?) "
-                "RETURNING rowid as id, email, autoreply_timeout;",
+                "RETURNING rowid as user_id, email, autoreply_timeout;",
                 (credentials.email, hashed_password),
             )
             user: User = result.fetchone()
@@ -41,7 +41,7 @@ def create_user(credentials: UserCredentials) -> User:
 def get_user(user_id: int) -> User:
     with sqlite_db(row_factory=user_factory) as db:
         result = db.execute(
-            "SELECT rowid as id, email, autoreply_timeout "
+            "SELECT rowid as user_id, email, autoreply_timeout "
             "FROM users "
             "WHERE rowid = ? "
             "LIMIT 1;",
@@ -58,7 +58,7 @@ def save_user(user: User) -> None:
             "UPDATE users "
             "SET email = ?, autoreply_timeout = ? "
             "WHERE rowid = ?;",
-            (user.email, user.autoreply_timeout, user.id),
+            (user.email, user.autoreply_timeout, user.user_id),
         )
         db.commit()
 

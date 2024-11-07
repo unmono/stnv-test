@@ -11,7 +11,7 @@ def comment_factory(cursor: sqlite3.Cursor | sqlite3.Connection, row: tuple[Any,
         column[0]: row[idx]
         for idx, column in enumerate(cursor.description)
     }
-    if 'email' not in kw or 'author_id' not in kw:
+    if 'email' not in kw or 'user_id' not in kw:
         raise FetchingError('User entry has to be fetched alongside with post entry by joining them')
     kw['author'] = User(**kw)
     comment = Comment(**kw)
@@ -20,11 +20,10 @@ def comment_factory(cursor: sqlite3.Cursor | sqlite3.Connection, row: tuple[Any,
 
 def create_comment(comment: Comment) -> Comment:
     with sqlite_db() as db:
+        print(comment.model_dump())
         result = db.execute(
-            "INSERT INTO comments "
-            "   (reply_to, author_id, post_id, body, autoreply_at) "
-            "VALUES "
-            "   (:reply_to, :author_id, :post_id, :body, :autoreply_at) "
+            "INSERT INTO comments (reply_to, author_id, post_id, body, autoreply_at) "
+            "VALUES (:reply_to, :author_id, :post_id, :body, :autoreply_at) "
             "RETURNING current_timestamp, status",
             comment.model_dump()
         )
@@ -45,6 +44,7 @@ def get_comment(comment_id: int) -> Comment:
             "   u.email, "
             "   u.autoreply_timeout, "
             "   c.rowid as comment_id, "
+            "   c.reply_to, "
             "   c.author_id, "
             "   c.post_id, "
             "   c.body, "
@@ -72,6 +72,7 @@ def get_comments_by_post(post_id: int) -> list[Comment]:
             "   u.email, "
             "   u.autoreply_timeout, "
             "   c.rowid as comment_id, "
+            "   c.reply_to, "
             "   c.author_id, "
             "   c.post_id, "
             "   c.body, "
@@ -96,6 +97,7 @@ def get_comments_by_user(user_id: int) -> list[Comment]:
             "   u.email, "
             "   u.autoreply_timeout, "
             "   c.rowid as comment_id, "
+            "   c.reply_to, "
             "   c.author_id, "
             "   c.post_id, "
             "   c.body, "
@@ -113,7 +115,7 @@ def get_comments_by_user(user_id: int) -> list[Comment]:
 
 
 def edit_comment(edited_comment: Comment) -> Comment:
-    with sqlite_db(row_factory=comment_factory) as db:
+    with sqlite_db() as db:
         result = db.execute(
             "UPDATE comments "
             "SET "

@@ -6,7 +6,15 @@ from starlette.responses import RedirectResponse
 
 from .schemas import UserCredentials, User, Post, Comment, PostData, CommentData, CommentStatus
 from .dependencies import requesting_user
-from .exceptions import UserAlreadyExists, internal_error, unauthorized, NoSuchComment, not_found, NoSuchUser
+from .exceptions import (
+    UserAlreadyExists,
+    internal_error,
+    unauthorized,
+    NoSuchComment,
+    not_found,
+    NoSuchUser,
+    NoSuchPost
+)
 from .repositories import (
     user as user_repo,
     post as post_repo,
@@ -36,6 +44,7 @@ def user_space(
         request: Request,
 ) -> User | RedirectResponse:
     if user.user_id != user_id:
+        #TODO: Better to be unreachable than redirect
         return RedirectResponse(request.url_for('user_posts', user_id=user_id))
     user = user_repo.get_user(user_id)
     return user
@@ -44,7 +53,7 @@ def user_space(
 @user_router.patch("/{user_id}/")
 def update_user_settings(
         user_id: int,
-        user_data: User,
+        user_data: User,  # TODO: separate UserData from User
         user: Annotated[User, Depends(requesting_user)],
 ):
     if user.user_id != user_id:
@@ -89,14 +98,18 @@ def new_post(
     )
     try:
         post_repo.create_post(post)
-    except:
+    except Exception as E:
+        print(E)
         raise internal_error
     return post
 
 
 @posts_router.get("/{post_id}/")
 def get_post(post_id: int) -> Post:
-    return post_repo.get_post_by_id(post_id)
+    try:
+        return post_repo.get_post_by_id(post_id)
+    except NoSuchPost:
+        raise not_found
 
 
 @posts_router.patch("/{post_id}/")
@@ -105,7 +118,10 @@ def edit_post(
         post_data: PostData,
         user: Annotated[User, Depends(requesting_user)]
 ):
-    original_post = post_repo.get_post_by_id(post_id)
+    try:
+        original_post = post_repo.get_post_by_id(post_id)
+    except NoSuchPost:
+        raise not_found
     if user.user_id != original_post.author_id:
         raise unauthorized
     original_post.title = post_data.title
@@ -130,7 +146,8 @@ def comment_post(
         user: Annotated[User, Depends(requesting_user)],
         comment_data: CommentData,
 ) -> Comment:
-    # todo: autoreply from post user, not comment...
+    # todo: autoreply from post user, not comment
+    # TODO: get rid of autoreply_at from response
     if user.autoreply_timeout is not None:
         autoreply_at_dt = datetime.now() + timedelta(minutes=user.autoreply_timeout)
         autoreply_at = int(autoreply_at_dt.timestamp())
@@ -195,7 +212,7 @@ def reply_comment(
         comment_id: int,
         user: Annotated[User, Depends(requesting_user)],
         comment_data: CommentData,
-):
+) -> Comment:
     try:
         original_comment = comment_repo.get_comment(comment_id)
     except NoSuchComment:
@@ -207,4 +224,4 @@ def reply_comment(
         post_id=original_comment.post_id,
         body=comment_data.body,
     )
-    comment_repo.create_comment(new_comment)
+    return comment_repo.create_comment(new_comment)

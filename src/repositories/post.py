@@ -7,6 +7,7 @@ from ..exceptions import FetchingError, NoSuchPost
 
 
 def post_factory(cursor: sqlite3.Cursor | sqlite3.Connection, row: tuple[Any, ...]) -> Post:
+    # TODO: convert timestamps to datetime objects
     kw = {
         column[0]: row[idx]
         for idx, column in enumerate(cursor.description)
@@ -28,8 +29,8 @@ def create_post(new_post: Post) -> Post:
             "RETURNING created_at, updated_at;",
             (new_post.author_id, new_post.title, new_post.body),
         )
-        db.commit()
         new_post.created_at, new_post.updated_at = result.fetchone()
+        db.commit()
     return new_post
 
 

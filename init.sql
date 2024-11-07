@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL,
     hash TEXT NOT NULL,
-    autoreply_timeout INTEGER
+    autoreply_timeout INTEGER DEFAULT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS email_index
 ON users(email);
