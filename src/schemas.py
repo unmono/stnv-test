@@ -35,15 +35,20 @@ def validate_password(v: SecretStr) -> str:
 PasswordField = Annotated[SecretStr, AfterValidator(validate_password)]
 
 
-class UserCredentials(BaseModel):
+class UserData(BaseModel):
     email: EmailStr
     password: PasswordField
+
+
+class UserSettings(BaseModel):
+    email: EmailStr | None = None
+    autoreply_timeout: int | None = Field(default=None, ge=0, le=24 * 60)
 
 
 class User(BaseModel):
     user_id: int
     email: EmailStr
-    autoreply_timeout: int | None = Field(default=None, ge=0, le=24 * 60 * 60)
+    autoreply_timeout: int | None = Field(default=None, ge=0, le=24 * 60)
 
 
 class TokenResponse(BaseModel):
@@ -62,8 +67,8 @@ class Post(BaseModel):
     author_id: int
     title: str
     body: str
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    created_at: Annotated[datetime, Field(default_factory=datetime.fromisoformat)] | None = None
+    updated_at: Annotated[datetime, Field(default_factory=datetime.fromisoformat)] | None = None
 
 
 class CommentData(BaseModel):
@@ -84,7 +89,7 @@ class Comment(BaseModel):
     # post: Post | None = None
     post_id: int
     body: str
-    status: CommentStatus = CommentStatus.NOT_REVIEWED  # TODO: something unclear with type here
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    status: CommentStatus = CommentStatus.NOT_REVIEWED
+    created_at: Annotated[datetime, Field(default_factory=datetime.fromisoformat)] | None = None
+    updated_at: Annotated[datetime, Field(default_factory=datetime.fromisoformat)] | None = None
     autoreply_at: int | None = None

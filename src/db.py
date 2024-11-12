@@ -1,22 +1,26 @@
 import os
 import sqlite3
 from contextlib import contextmanager
-from typing import Callable, Any, Generator
+from functools import partial
+from typing import Callable, Any, Generator, Annotated
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
+
+from .settings import get_settings, Settings
 
 
-RowFactoryType = Callable[[sqlite3.Cursor | sqlite3.Connection], tuple[Any, ...]]
+type RowFactoryType = Callable[[sqlite3.Cursor | sqlite3.Connection], tuple[Any, ...]]
+type SQLiteContextManager = Generator[sqlite3.Connection]
 
 
 @contextmanager
-def sqlite_db(
-        path_to_db: str | os.PathLike = "db.sqlite",
+def sqlite_cm(
+        db_path: str | os.PathLike,
         row_factory: RowFactoryType | None = None,
-) -> Generator[sqlite3.Connection]:
+) -> SQLiteContextManager:
     try:
         conn = sqlite3.connect(
-            path_to_db,
+            db_path,
             autocommit=False,
         )
     except sqlite3.Error as err:
@@ -28,3 +32,7 @@ def sqlite_db(
         yield conn
     finally:
         conn.close()
+
+
+def prepare_db(settings: Annotated[Settings, Depends(get_settings)]):
+    return partial[SQLiteContextManager](sqlite_cm, db_path=settings.db_path)
