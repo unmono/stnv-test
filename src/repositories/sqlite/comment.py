@@ -5,9 +5,11 @@ from src.repositories.exceptions import NoEntry
 from src.schemas import Comment, User
 from .base import SqliteRepositoryBase
 from ..exceptions import FetchingError
+from ...comment_classifier import comment_queue
+from ...types import SQLiteExecutable
 
 
-def comment_factory(cursor: sqlite3.Cursor | sqlite3.Connection, row: tuple[Any, ...]) -> Comment:
+def comment_factory(cursor: SQLiteExecutable, row: tuple[Any, ...]) -> Comment:
     kw = {
         column[0]: row[idx]
         for idx, column in enumerate(cursor.description)
@@ -97,7 +99,9 @@ class SqliteCommentRepository(SqliteRepositoryBase):
 
     def save(self, comment: Comment) -> Comment:
         handler = self._new_comment if comment.comment_id is None else self._edit_comment
-        return handler(comment)
+        saved_comment = handler(comment)
+        comment_queue.put((saved_comment.comment_id, saved_comment.body))
+        return saved_comment
 
     def delete(self, comment_id: int) -> Comment:
         ...

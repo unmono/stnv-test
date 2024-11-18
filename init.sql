@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS posts (
     created_at TEXT NOT NULL DEFAULT current_timestamp,
     updated_at TEXT NOT NULL DEFAULT current_timestamp
 );
-CREATE TRIGGER posts_updated_at
+CREATE TRIGGER IF NOT EXISTS posts_updated_at
 AFTER UPDATE ON posts
 WHEN old.updated_at <> current_timestamp
 BEGIN
@@ -25,7 +25,7 @@ BEGIN
 END;
 
 -- comments table
-CREATE TABLE comments(
+CREATE TABLE IF NOT EXISTS comments(
     author_id INTEGER REFERENCES users(rowid) ON DELETE SET NULL,
     reply_to INTEGER REFERENCES comments(rowid) ON DELETE SET NULL,
     post_id INTEGER REFERENCES posts(rowid) ON DELETE SET NULL,
@@ -39,7 +39,7 @@ CREATE TABLE comments(
 CREATE INDEX IF NOT EXISTS autoreply_index
 ON comments(autoreply_at);
 
-CREATE TRIGGER comments_updated_at
+CREATE TRIGGER IF NOT EXISTS comments_updated_at
 AFTER UPDATE ON comments
 WHEN old.updated_at <> current_timestamp
 BEGIN

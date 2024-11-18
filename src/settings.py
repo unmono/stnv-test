@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     secret_key: str
     db_path: str | os.PathLike
+    sql_init: str | os.PathLike = './init.sql'
 
 
 @cache

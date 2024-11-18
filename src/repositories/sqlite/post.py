@@ -2,12 +2,12 @@ import sqlite3
 from typing import Any
 
 from src.schemas import Post, User
-from src.types import SqliteExecutable
+from src.types import SQLiteExecutable
 from ..exceptions import NoEntry, FetchingError
 from .base import SqliteRepositoryBase
 
 
-def post_factory(cursor: SqliteExecutable, row: tuple[Any, ...]) -> Post:
+def post_factory(cursor: SQLiteExecutable, row: tuple[Any, ...]) -> Post:
     kw = {
         column[0]: row[idx]
         for idx, column in enumerate(cursor.description)

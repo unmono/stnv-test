@@ -11,6 +11,7 @@ from .repositories import SqliteUserRepository
 from .schemas import User
 from .settings import Settings, get_settings
 
+
 oauth_flow = OAuth2PasswordBearer(
     tokenUrl='/auth/token',
 )

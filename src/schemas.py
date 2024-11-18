@@ -22,12 +22,12 @@ def validate_password(v: SecretStr) -> str:
                 checklist[3] = None
             case _:
                 raise ValueError(
-                    f'You can use only these symbols for password: {' '.join([chr(i) for i in range(21, 127)])}'
+                    f'You can use only these symbols for password: {" ".join([chr(i) for i in range(21, 127)])}'
                 )
     unchecked = [c_type for c_type in checklist if c_type is not None]
     if unchecked:
         raise ValueError(
-            f'To strengthen your password add {', '.join(unchecked)}'
+            f'To strengthen your password add {", ".join(unchecked)}'
         )
     return pwd
 

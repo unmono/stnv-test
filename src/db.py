@@ -2,15 +2,18 @@ import os
 import sqlite3
 from contextlib import contextmanager
 from functools import partial
-from typing import Callable, Any, Generator, Annotated
+from typing import Annotated
 
 from fastapi import HTTPException, Depends
 
 from .settings import get_settings, Settings
+from .types import RowFactoryType, SQLiteContextManager, SQLiteExecutable
 
 
-type RowFactoryType = Callable[[sqlite3.Cursor | sqlite3.Connection], tuple[Any, ...]]
-type SQLiteContextManager = Generator[sqlite3.Connection]
+def initialize_db(**kwargs) -> SQLiteExecutable:
+    settings = get_settings()
+    db = sqlite3.connect(settings.db_path, **kwargs)
+    return db
 
 
 @contextmanager
@@ -21,7 +24,7 @@ def sqlite_cm(
     try:
         conn = sqlite3.connect(
             db_path,
-            autocommit=False,
+            # autocommit=False,
         )
     except sqlite3.Error as err:
         # logger.critical(f'Database is out of reach. Says:\n{err}')
