@@ -1,8 +1,8 @@
 import sqlite3
 from typing import Any
 
-from src.schemas import Post, User
-from src.types import SQLiteExecutable
+from ...schemas import Post, User
+from ...types import SQLiteExecutable
 from ..exceptions import NoEntry, FetchingError
 from .base import SqliteRepositoryBase
 

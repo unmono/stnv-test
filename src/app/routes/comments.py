@@ -7,7 +7,7 @@ from ..exceptions import not_found, unauthorized, forbidden
 from ..repositories import SqliteCommentRepository, SqlitePostRepository
 from ..repositories.exceptions import NoEntry
 from ..repositories.protocols import CommentRepository, PostRepository
-from ..schemas import CommentData, Comment, User
+from ..schemas import CommentData, Comment, User, CommentInfo
 from ..dependencies import requesting_user
 
 
@@ -20,7 +20,7 @@ comments_router = APIRouter(
 def get_comments_to_post(
         post_id: int,
         comment_repo: Annotated[CommentRepository, Depends(SqliteCommentRepository)],
-) -> list[Comment]:
+) -> list[CommentInfo]:
     return comment_repo.get_by_post(post_id)
 
 

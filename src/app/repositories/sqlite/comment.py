@@ -1,15 +1,15 @@
 import sqlite3
+import time
 from typing import Any
 
-from src.repositories.exceptions import NoEntry
-from src.schemas import Comment, User
 from .base import SqliteRepositoryBase
-from ..exceptions import FetchingError
+from ..exceptions import FetchingError, NoEntry
 from ...comment_classifier import comment_queue
-from ...types import SQLiteExecutable
+from ...types import SQLiteExecutable, CommentsAutoreplyData
+from ...schemas import Comment, CommentInfo, User
 
 
-def comment_factory(cursor: SQLiteExecutable, row: tuple[Any, ...]) -> Comment:
+def comment_factory(cursor: SQLiteExecutable, row: tuple[Any, ...]) -> CommentInfo:
     kw = {
         column[0]: row[idx]
         for idx, column in enumerate(cursor.description)
@@ -17,12 +17,12 @@ def comment_factory(cursor: SQLiteExecutable, row: tuple[Any, ...]) -> Comment:
     if 'email' not in kw or 'user_id' not in kw:
         raise FetchingError('User entry has to be fetched alongside with post entry by joining them')
     kw['author'] = User(**kw)
-    comment = Comment(**kw)
+    comment = CommentInfo(**kw)
     return comment
 
 
 class SqliteCommentRepository(SqliteRepositoryBase):
-    def get(self, comment_id: int) -> Comment:
+    def get(self, comment_id: int) -> CommentInfo:
         with self.db(row_factory=comment_factory) as db:
             cursor = db.execute(
                 "SELECT "
@@ -49,7 +49,7 @@ class SqliteCommentRepository(SqliteRepositoryBase):
                 return comment
             raise NoEntry()
 
-    def get_by_author(self, user_id) -> list[Comment]:
+    def get_by_author(self, user_id) -> list[CommentInfo]:
         with self.db(row_factory=comment_factory) as db:
             cursor = db.execute(
                 "SELECT "
@@ -73,7 +73,7 @@ class SqliteCommentRepository(SqliteRepositoryBase):
             )
             return cursor.fetchall()
 
-    def get_by_post(self, post_id: int) -> list[Comment]:
+    def get_by_post(self, post_id: int) -> list[CommentInfo]:
         with self.db(row_factory=comment_factory) as db:
             cursor = db.execute(
                 "SELECT "
@@ -103,7 +103,7 @@ class SqliteCommentRepository(SqliteRepositoryBase):
         comment_queue.put((saved_comment.comment_id, saved_comment.body))
         return saved_comment
 
-    def delete(self, comment_id: int) -> Comment:
+    def delete(self, comment_id: int) -> CommentInfo:
         ...
 
     def has_replies(self, comment_id: int) -> bool:
@@ -113,6 +113,41 @@ class SqliteCommentRepository(SqliteRepositoryBase):
                 (comment_id, )
             )
             return True if cursor.fetchone()[0] != 0 else False
+
+    def get_comments_to_reply(self) -> CommentsAutoreplyData:
+        with self.db() as db:
+            cursor = db.execute(
+                "SELECT "
+                "   c.rowid as comment_id, "
+                "   c.body as text, "
+                "   c.post_id as post_id, "
+                "   p.author_id as post_author_id "
+                "FROM comments c "
+                "INNER JOIN posts p "
+                "ON c.post_id = p.rowid "
+                "WHERE c.status = 1 "
+                "   AND c.reply_to IS NULL "
+                "   AND c.author_id <> p.author_id"
+                "   AND c.autoreply_at < ?;",
+                (time.time(), )
+            )
+            return cursor.fetchall()
+
+    def post_autoreply(self, comment_id: int, reply_text: str, post_id, post_author_id: int) -> None:
+        with self.db() as db:
+            cursor = db.execute(
+                "UPDATE comments "
+                "SET autoreply_at = NULL "
+                "WHERE rowid = ?;",
+                (comment_id, )
+            )
+            cursor.execute(
+                "INSERT INTO comments (author_id, reply_to, post_id, body) "
+                "VALUES (?, ?, ?, ?);",
+                (post_author_id, comment_id, post_id, reply_text)
+            )
+            comment_queue.put((cursor.lastrowid, reply_text))
+            db.commit()
 
     def _new_comment(self, comment: Comment) -> Comment:
         with self.db() as db:

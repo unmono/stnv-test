@@ -9,6 +9,7 @@ class Settings(BaseSettings):
         env_file='./.env',
     )
 
+    google_key: str = 'bla'
     secret_key: str
     db_path: str | os.PathLike
     sql_init: str | os.PathLike = './init.sql'

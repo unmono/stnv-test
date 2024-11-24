@@ -2,7 +2,7 @@ from typing import Annotated, Any
 
 from fastapi import Depends
 
-from src.db import prepare_db
+from ...db import prepare_db
 
 
 class SqliteRepositoryBase:

@@ -3,4 +3,4 @@ __pycache__
 .pytest_cache
 *.env
 .venv/
-db.sqlite
+src/db.sqlite

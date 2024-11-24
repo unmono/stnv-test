@@ -1,8 +1,8 @@
 import sqlite3
 
-from src.schemas import User
-from .base import SqliteRepositoryBase
+from ...schemas import User
 from ..exceptions import NoEntry
+from .base import SqliteRepositoryBase
 
 
 def user_factory(cursor: sqlite3.Cursor | sqlite3.Connection, row: tuple[any, ...]) -> User:

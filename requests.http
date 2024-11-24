@@ -1,0 +1,78 @@
+@username = user1@email.com
+@password = 12345678Aa!
+
+
+### Register new user
+POST http://localhost:8000/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{username}}",
+  "password": "{{password}}"
+}
+
+
+### Get jwt for user
+POST http://localhost:8000/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username = {{username}} &
+password = {{password}}
+
+> {%
+client.global.set("access_token", response.body.access_token)
+ %}
+
+
+### Get authenticated user
+GET localhost:8000/user/me
+Authorization: Bearer {{access_token}}
+
+
+### Create post
+POST http://localhost:8000/posts/
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "title": "Post 1",
+  "body": "Post 1 text."
+}
+
+> {%
+client.global.set("post_id", response.body.post_id)
+ %}
+
+
+### Create comment
+POST http://localhost:8000/comments/by_post/{{post_id}}
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "body": "Good job!"
+}
+
+> {%
+client.global.set("comment_id", response.body.comment_id)
+ %}
+
+
+### Check post comments
+GET http://localhost:8000/comments/by_post/{{post_id}}
+Authorization: Bearer {{access_token}}
+
+
+### Check comment
+GET http://localhost:8000/comments/{{comment_id}}
+Authorization: Bearer {{access_token}}
+
+
+### Add autoreply to user
+PATCH http://localhost:8000/user/me/
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "autoreply_timeout": 1
+}

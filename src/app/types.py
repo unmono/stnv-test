@@ -13,3 +13,4 @@ from typing import (
 SQLiteExecutable: TypeAlias = sqlite3.Cursor | sqlite3.Connection
 RowFactoryType: TypeAlias = Callable[[SQLiteExecutable], tuple[Any, ...]]
 SQLiteContextManager: TypeAlias = Generator[sqlite3.Connection, None, None]
+CommentsAutoreplyData: TypeAlias = list[tuple[int, str, int, int]]

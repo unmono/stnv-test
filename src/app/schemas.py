@@ -10,7 +10,7 @@ def validate_password(v: SecretStr) -> str:
     assert 8 <= len(v) <= 32, 'Password must be from 8 to 32 characters long'
     checklist: list[str | None] = ['number', 'uppercase letter', 'lowercase letter', 'special character']
     for c in pwd:
-        ac = ord(c)  # ASCII code
+        ac = ord(c)
         match ac:
             case ac if 48 <= ac <= 57:
                 checklist[0] = None
@@ -81,7 +81,7 @@ class CommentStatus(IntEnum):
     REJECTED = 2
 
 
-class Comment(BaseModel):
+class CommentInfo(BaseModel):
     comment_id: int | None = None
     reply_to: int | None = None
     author: User | None = None
@@ -92,4 +92,7 @@ class Comment(BaseModel):
     status: CommentStatus = CommentStatus.NOT_REVIEWED
     created_at: Annotated[datetime, Field(default_factory=datetime.fromisoformat)] | None = None
     updated_at: Annotated[datetime, Field(default_factory=datetime.fromisoformat)] | None = None
+
+
+class Comment(CommentInfo):
     autoreply_at: int | None = None

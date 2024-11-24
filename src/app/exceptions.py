@@ -1,4 +1,4 @@
-from fastapi import HTTPException\
+from fastapi import HTTPException
 
 bad_credentials = HTTPException(
     status_code=400,
@@ -20,3 +20,6 @@ internal_error = HTTPException(
     status_code=500,
     detail="Internal server error",
 )
+
+
+class NotConfiguredError(Exception): ...

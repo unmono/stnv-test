@@ -22,12 +22,14 @@ def requesting_user(
         token: Annotated[str, Depends(oauth_flow)],
         user_repo: Annotated[UserRepository, Depends(SqliteUserRepository)],
 ) -> User:
-    # todo: check for guest user
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=['HS256'])
     except jwt.ExpiredSignatureError as err:
-        # todo: refresh token
-        raise err
+        raise HTTPException(
+            status_code=401,
+            detail='Token expired',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=401,
