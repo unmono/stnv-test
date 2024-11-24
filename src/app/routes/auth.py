@@ -59,7 +59,7 @@ def register_new_user(
     ph = PasswordHasher()
     hashed_password = ph.hash(user_data.password)
     try:
-        auth_repo.register_user(user_data.email, hashed_password)
+        auth_repo.register_user(str(user_data.email), hashed_password)
         return {
             'detail': 'Successful registration! You can use now your credentials to get a token.'
         }

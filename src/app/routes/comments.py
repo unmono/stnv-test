@@ -2,6 +2,7 @@ import time
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from starlette.responses import RedirectResponse
 
 from ..exceptions import not_found, unauthorized, forbidden
 from ..repositories import SqliteCommentRepository, SqlitePostRepository
@@ -31,7 +32,7 @@ def add_comment_to_post(
         user: Annotated[User, Depends(requesting_user)],
         post_id: int,
         comment_data: CommentData
-) -> Comment:
+) -> RedirectResponse:
     try:
         post = post_repo.get(post_id)
     except NoEntry:
@@ -47,15 +48,18 @@ def add_comment_to_post(
         body=comment_data.body,
         autoreply_at=autoreply_at,
     )
-    return comment_repo.save(new_comment)
-
+    saved_comment = comment_repo.save(new_comment)
+    return RedirectResponse(
+        url=comments_router.url_path_for('get_comment', comment_id=saved_comment.comment_id),
+        status_code=303,
+    )
 
 
 @comments_router.get('/by_author/{author_id}')
 def get_comments_by_author(
         author_id: int,
         comment_repo: Annotated[CommentRepository, Depends(SqliteCommentRepository)],
-) -> list[Comment]:
+) -> list[CommentInfo]:
     return comment_repo.get_by_author(author_id)
 
 
@@ -63,7 +67,7 @@ def get_comments_by_author(
 def get_comment(
         comment_id: int,
         comment_repo: Annotated[CommentRepository, Depends(SqliteCommentRepository)]
-) -> Comment:
+) -> CommentInfo:
     try:
         return comment_repo.get(comment_id)
     except NoEntry:
@@ -76,7 +80,7 @@ def reply_to_comment(
         comment_repo: Annotated[CommentRepository, Depends(SqliteCommentRepository)],
         comment_id: int,
         comment_data: CommentData,
-) -> Comment:
+) -> RedirectResponse:
     try:
         original_comment = comment_repo.get(comment_id)
     except NoEntry:
@@ -93,7 +97,11 @@ def reply_to_comment(
         post_id=original_comment.post_id,
         body=comment_data.body,
     )
-    return comment_repo.save(new_comment)
+    saved_comment = comment_repo.save(new_comment)
+    return RedirectResponse(
+        url=comments_router.url_path_for('get_comment', comment_id=saved_comment.comment_id),
+        status_code=303,
+    )
 
 
 @comments_router.patch('/{comment_id}/')
@@ -102,9 +110,9 @@ def edit_comment(
         comment_repo: Annotated[CommentRepository, Depends(SqliteCommentRepository)],
         comment_id: int,
         comment_data: CommentData,
-) -> Comment:
+) -> RedirectResponse:
     try:
-        original_comment = comment_repo.get(comment_id)
+        original_comment = Comment(**comment_repo.get(comment_id).model_dump())
     except NoEntry:
         raise not_found
     if user.user_id != original_comment.author_id:
@@ -116,6 +124,10 @@ def edit_comment(
         )
     edited_comment = original_comment.model_copy(update=comment_data.model_dump())
     try:
-        return comment_repo.save(edited_comment)
+        saved_comment = comment_repo.save(edited_comment)
+        return RedirectResponse(
+            url=comments_router.url_path_for('get_comment', comment_id=saved_comment.comment_id),
+            status_code=303,
+        )
     except NoEntry:
         raise not_found
