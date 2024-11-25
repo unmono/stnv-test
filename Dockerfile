@@ -9,9 +9,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./src .
 
-ENV SECRET_KEY=SOME_SECRET_KEY
 ENV DB_PATH=./db.sqlite
 ENV SQL_INIT=./init.sql
+
+RUN pytest
 
 CMD ["fastapi", "run", "app/main.py"]
 

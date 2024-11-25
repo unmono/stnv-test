@@ -21,8 +21,10 @@ test_data = test_dir / 'test_data.sql'
 
 
 test_settings = Settings(
+    sql_init=init_script,
+    db_path=db_path,
+    google_key='',
     secret_key="test-secret-key",
-    db_path=db_path
 )
 
 

@@ -2,17 +2,14 @@ import os
 from functools import cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file='./.env',
-    )
-
-    google_key: str = 'bla'
+    google_key: str
     secret_key: str
     db_path: str | os.PathLike
-    sql_init: str | os.PathLike = './init.sql'
+    sql_init: str | os.PathLike
 
 
 @cache
