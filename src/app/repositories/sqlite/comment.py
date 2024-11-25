@@ -97,6 +97,18 @@ class SqliteCommentRepository(SqliteRepositoryBase):
             )
             return cursor.fetchall()
 
+    def get_stats_by_date(self, date_from: str, date_to: str):
+        with self.db() as db:
+            cursor = db.execute(
+                "SELECT date(created_at) as day, status, COUNT(*) "
+                "FROM comments "
+                "WHERE day >= ? AND day <= ? "
+                "GROUP BY status, day "
+                "ORDER BY day;",
+                (date_from, date_to)
+            )
+            return cursor.fetchall()
+
     def save(self, comment: Comment) -> Comment:
         handler = self._new_comment if comment.comment_id is None else self._edit_comment
         saved_comment = handler(comment)

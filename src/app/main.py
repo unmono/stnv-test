@@ -9,6 +9,7 @@ from .comment_classifier import comment_modifier, classifier_worker, comment_que
 from .comment_replier import replier_worker
 from .routes import auth_router, users_router, comments_router, posts_router
 from .db import initialize_db
+from .routes.admin import admin_router
 from .settings import get_settings
 
 
@@ -32,6 +33,7 @@ async def app_setup(app: FastAPI):
 
 app = FastAPI(lifespan=app_setup)
 app.include_router(auth_router)
+app.include_router(admin_router)
 app.include_router(users_router)
 app.include_router(posts_router)
 app.include_router(comments_router)
