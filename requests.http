@@ -1,4 +1,4 @@
-@username = user1@email.com
+@username = user@email.com
 @password = 12345678Aa!
 
 
@@ -50,7 +50,7 @@ Content-Type: application/json
 Authorization: Bearer {{access_token}}
 
 {
-  "body": "Good job!"
+  "body": "good job!"
 }
 
 > {%
@@ -74,5 +74,10 @@ Content-Type: application/json
 Authorization: Bearer {{access_token}}
 
 {
-  "autoreply_timeout": 1
+  "autoreply_timeout": 0
 }
+
+
+###
+GET http://localhost:8000/admin/comments-daily-breakdown?date_from=2024-11-10&date_to=2024-11-29
+Authorization: Bearer {{access_token}}

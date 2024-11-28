@@ -50,7 +50,6 @@ async def autoreply_procedure(
         reply_text = await get_gemini_reply(api_key, text)
     except Exception as err:
         # logger.error(f'Error in autoreplying process.\n{err}')
-        print(str(err))
         pass
     else:
         repo.post_autoreply(

@@ -41,7 +41,7 @@ class SqliteCommentRepository(SqliteRepositoryBase):
                 "FROM comments c "
                 "INNER JOIN users u "
                 "ON u.rowid = c.author_id "
-                "WHERE c.rowid = ?"
+                "WHERE c.rowid = ? "
                 "LIMIT 1;",
                 (comment_id, )
             )
@@ -92,7 +92,7 @@ class SqliteCommentRepository(SqliteRepositoryBase):
                 "FROM comments c "
                 "INNER JOIN users u "
                 "ON u.rowid = c.author_id "
-                "WHERE c.post_id = ?;",
+                "WHERE c.post_id = ? AND c.status = 1;",
                 (post_id, )
             )
             return cursor.fetchall()
